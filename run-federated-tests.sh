@@ -46,7 +46,7 @@ main() {
 
 		mkdir -p /mnt/k8s/e2e
 		rm /mnt/k8s/e2e/* -rf
-		rm -rf ${RESULTS_DIR}/${JOB}
+		rm -rf ${RESULTS_DIR}
 #		mkdir -p ${RESULTS_DIR}/${JOB}
 #                gsutil rsync -r ${RESULTS_DIR}/${JOB} gs://${PROJECT}/logs/${JOB}
 
@@ -82,7 +82,7 @@ main() {
                 fi
 
                 if [ -n "$STRING" ]; then
-                    echo "k8s is not up"
+                    echo "k8s is not up,sleep 3600S"
                     sleep 3600
                     continue
                 fi

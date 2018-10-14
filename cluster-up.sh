@@ -30,7 +30,9 @@ if [[ ${UPDATE_KUBELET} == 1 ]]; then
 	sync
 
 	curl -sSL https://dl.k8s.io/ci-cross/${CI_VERSION}/bin/linux/${ARCH}/kubelet > /usr/bin/kubelet
-	chmod +x /usr/bin/kubelet
+	chmod a+x /usr/bin/kubelet
+	cp kubelet /etc/default/kubelet -f
+	cp kubelet.service /lib/systemd/system/kubelet.service -f
 
 	curl -sSL https://github.com/kubernetes/kubernetes/raw/master/build/debs/10-kubeadm.conf > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 	systemctl daemon-reload
@@ -39,16 +41,23 @@ fi
 echo "Downloading kubectl..."
 mkdir -p ${TMP_DIR}
 curl -sSL https://dl.k8s.io/ci-cross/${CI_VERSION}/bin/linux/${ARCH}/kubectl > ${TMP_DIR}/kubectl
+chmod a+x ${TMP_DIR}/kubectl
+
 echo "Downloading kubeadm..."
 curl -sSL https://dl.k8s.io/ci-cross/${CI_VERSION}/bin/linux/${ARCH}/kubeadm > ${TMP_DIR}/kubeadm
+chmod a+x ${TMP_DIR}/kubeadm
+
 echo "Downloading e2e.test..."
 curl -sSL https://dl.k8s.io/ci-cross/${CI_VERSION}/kubernetes-test.tar.gz | tar -xz -C ${TMP_DIR} kubernetes/platforms/linux/${ARCH}/e2e.test --strip-components=4
 chmod +x ${TMP_DIR}/kubectl ${TMP_DIR}/kubeadm ${TMP_DIR}/e2e.test
 
 echo "Running kubeadm init..."
 swapoff -a
+rm /var/lib/etcd/ -rf
 ${TMP_DIR}/kubeadm reset -f
 
+systemctl enable kubelet.service
+systemctl restart kubelet.service
 ${TMP_DIR}/kubeadm init --kubernetes-version ci/latest 
 #${TMP_DIR}/kubeadm init ci/latest
 
